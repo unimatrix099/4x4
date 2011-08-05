@@ -1,0 +1,18 @@
+NrPlayers 2
+BoardSize 14 14
+BoardLimitsX 1 11
+BoardLimitsY 1 7
+LastPosition 6 4
+Gate 0 11 7
+Gate 1 1 1
+Wall 10 7 10 8
+Wall 1 7 10 7
+Wall 1 2 1 7
+Wall 0 2 1 2
+Wall 2 0 2 1
+Wall 2 1 11 1
+Wall 11 1 11 6
+Wall 11 6 12 6
+Wall 2 6 4 6
+Wall 5 4 7 4
+Wall 8 2 10 2
