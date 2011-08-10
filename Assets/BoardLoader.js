@@ -16,12 +16,15 @@ var cameraZoom = 3;
 static var playerName : GameObject;
 static var messageGUI : GameObject;
 var dotPrefab : GameObject;
-var pointPrefab : GameObject;
-var linePrefab : GameObject;
+var linePrefabForPlayerA : GameObject;
+var linePrefabForPlayerB : GameObject;
 var wallPrefab : GameObject;
-var gatePrefab : GameObject;
+var gateAPrefab : GameObject;
+var gateBPrefab : GameObject;
 var mainCamera : GameObject;
-var lastPositionPrefab : GameObject;
+var lastPositionPrefabForPlayerA : GameObject;
+var lastPositionPrefabForPlayerB : GameObject;
+
 
 static var gameboard : GameDot[,];
 
@@ -40,12 +43,16 @@ static var nrPlayers : int = 0;
 static var playerNames : String[];
 static var playerColors : Color[];
 static var playerGates : Vector2[];
+static var playerLines : GameObject[];
+static var playersLastPositionPrefab : GameObject[];
+static var playersGatePrefab : GameObject[];
 
-static var gameIsWon = false;
+static var gameIsWon;
 
 static var lineHashTable : Hashtable = new Hashtable();
 
 function Start () {
+gameIsWon = false;
 dummyObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
 loadBoard(filePath);
 InitGUI();
@@ -66,7 +73,17 @@ playerGates = new Vector2[nrPlayers];
 
 playerCurrent = 0;
 
+playerLines = new GameObject[nrPlayers];
+playerLines[0] = linePrefabForPlayerA;
+playerLines[1] = linePrefabForPlayerB;
 
+playersLastPositionPrefab = new GameObject[nrPlayers];
+playersLastPositionPrefab[0] = lastPositionPrefabForPlayerA;
+playersLastPositionPrefab[1] = lastPositionPrefabForPlayerB;
+
+playersGatePrefab = new GameObject[nrPlayers];
+playersGatePrefab[0] = gateAPrefab;
+playersGatePrefab[1] = gateBPrefab;
 }
 
 function InitGUI(){
@@ -79,7 +96,7 @@ setPlayerName();
 
 static function tryMove(dx:int,dy:int,linePrefab:GameObject,lastPositionPrefab:GameObject): boolean{
 	if (validMove(dx,dy)){
-		move(dx,dy,linePrefab,lastPositionPrefab);
+		move(dx,dy,playerLines[playerCurrent]);
 		
 		return true;
 	}
@@ -319,7 +336,7 @@ static function isInBoardLimits(x:int, y:int):boolean{
 }
 
 
-static function move(dx:int,dy:int,linePrefab:GameObject,lastPosPrefab:GameObject)
+static function move(dx:int,dy:int,linePrefab:GameObject)
 {
 		addLineUnit(lastPositionX,lastPositionY,dx,dy,linePrefab);
 
@@ -342,7 +359,7 @@ static function move(dx:int,dy:int,linePrefab:GameObject,lastPosPrefab:GameObjec
 
 		checkIfPlayerMustChange();
 				
-		setLastPosition(lastPositionX,lastPositionY,lastPosPrefab);
+		setLastPosition(lastPositionX,lastPositionY);
 		
 		messageGUI.guiText.text="";
 }
@@ -356,13 +373,12 @@ static function announceWinnder(winner:int){
 
 static function addLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject){
 	var line : GameObject = addBaseLineUnit(x1,y1,dx,dy,linePrefab);
-	line.renderer.material.SetColor("_Color",playerColors[playerCurrent]);
 }
 
 static function addBaseLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject) : GameObject{
 	var line : GameObject = Instantiate(linePrefab, Vector3((x1+dx/2.0f) * lineSize, (y1+dy/2.0f) * lineSize, 0), Quaternion.FromToRotation (Vector3(1,0,0), Vector3(dx,dy,0)));
 	if (dx != 0 && dy != 0){
-		line.transform.localScale = Vector3(1.5f * lineSize ,1.0f,1.0f);
+		line.transform.localScale = Vector3(1.5f ,1.0f,1.0f);
 	}
 	
 	gameboard[x1,y1].setLine(dx,dy,line);
@@ -381,7 +397,7 @@ static function removeDummyBaseLineUnit(x1:int,y1:int,dx:int,dy:int){
 }
 
 
-static function setLastPosition(x:int,y:int,lastPositionPrefab:GameObject){
+static function setLastPosition(x:int,y:int){
 	if (lastPositionMarker != null){
 		Destroy(lastPositionMarker);
 	}
@@ -389,15 +405,8 @@ static function setLastPosition(x:int,y:int,lastPositionPrefab:GameObject){
 	lastPositionX = x;
 	lastPositionY = y;
 
-	lastPositionMarker= Instantiate(lastPositionPrefab, Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
-	lastPositionMarker.renderer.material.SetColor("_Color",playerColors[playerCurrent]);
-    lastPositionMarker.renderer.material.color.a = 0.5f;
-	lastPositionMarker.transform.localScale = Vector3(lineSize/3.0f,lineSize/3.0f,1);
+	lastPositionMarker= Instantiate(playersLastPositionPrefab[playerCurrent], Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
 	
-	
-	
-
-
 
 }
 
@@ -444,7 +453,7 @@ function loadBoard(filepathIncludingFileName : String) {
 		}
 		
 		if (tokens[0] == "LastPosition"){
-			setLastPosition(parseInt(tokens[1]),parseInt(tokens[2]),lastPositionPrefab);
+			setLastPosition(parseInt(tokens[1]),parseInt(tokens[2]));
 			prevPositionX=parseInt(tokens[1]);
 			prevPositionY=parseInt(tokens[2]);
 		}
@@ -488,8 +497,7 @@ function addDot(x:int,y:int):GameObject{
 }
 
 function addGate(playerId:int,x:int,y:int){
-		var instance : GameObject = Instantiate(gatePrefab, Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
-		instance.renderer.material.SetColor ("_Color", playerColors[playerId]);
+		var instance : GameObject = Instantiate(playersGatePrefab[playerId], Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
 		playerGates[playerId].x = x;
 		playerGates[playerId].y = y;
 }
@@ -520,7 +528,6 @@ if (y1 == y2){
 
 static function addWallLineUnit(x1:int,y1:int,dx:int,dy:int,wallPrefab:GameObject){
 	var wallLine : GameObject = addBaseLineUnit(x1,y1,dx,dy,wallPrefab);
-//	wallLine.renderer.material.SetColor("_Color", Color.black);
 	gameboard[x1,y1].setWallLine(dx,dy,wallLine);
 	gameboard[x1+dx,y1+dy].setWallLine(-dx,-dy,wallLine);
 }
@@ -739,4 +746,21 @@ public var dot : GameObject;
 	
 	
 
+}
+
+/* Example level loader */
+
+function OnGUI () {
+	// Make a background box
+	GUI.Box (Rect (Screen.width-110,10,100,90), "Menu");
+
+	// Make the first button. If it is pressed, Application.Loadlevel (1) will be executed
+	if (GUI.Button (Rect (Screen.width-100,40,80,20), "Reset")) {
+		Application.LoadLevel (0);
+	}
+
+	// Make the second button.
+	if (GUI.Button (Rect (Screen.width-100,70,80,20), "Exit")) {
+		 Application.Quit();
+	}
 }
