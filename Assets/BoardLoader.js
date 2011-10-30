@@ -1,7 +1,9 @@
 import System.IO;
 
-var filePath = "/Resources/Boards/board01.txt";
-var lines;
+#pragma strict
+
+
+var lines : int;
 static var boardSizeX = 0;
 static var boardSizeY = 0;
 static var lineSize = 10;
@@ -15,13 +17,16 @@ var cameraZoom = 3;
 
 static var playerName : GameObject;
 static var messageGUI : GameObject;
+
+static var touched = 0;
+
 var dotPrefab : GameObject;
 var linePrefabForPlayerA : GameObject;
 var linePrefabForPlayerB : GameObject;
 var wallPrefab : GameObject;
 var gateAPrefab : GameObject;
 var gateBPrefab : GameObject;
-var mainCamera : GameObject;
+var mainCamera : Camera;
 var lastPositionPrefabForPlayerA : GameObject;
 var lastPositionPrefabForPlayerB : GameObject;
 
@@ -51,10 +56,15 @@ static var gameIsWon;
 
 static var lineHashTable : Hashtable = new Hashtable();
 
+var boardPlane : GameObject;
+
+var lastMoveTime = 0.0f;
+var timeBetweenMoves = 0.5f;
+
 function Start () {
 gameIsWon = false;
 dummyObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-loadBoard(filePath);
+loadBoard();
 InitGUI();
 }
 
@@ -94,7 +104,7 @@ messageGUI.guiText.text = "";
 setPlayerName();
 }
 
-static function tryMove(dx:int,dy:int,linePrefab:GameObject,lastPositionPrefab:GameObject): boolean{
+static function tryMove(dx:int,dy:int): boolean{
 	if (validMove(dx,dy)){
 		move(dx,dy,playerLines[playerCurrent]);
 		
@@ -263,10 +273,10 @@ static function checkWallConditionCase3(x:int, y:int,lastX:int, lastY:int,prevX:
 static function checkIfCanMoveAfterMove(x:int,y:int):boolean{
 		//Debug.Log("possible moves from "+x+","+y);
 		var possibleMoves : int = 0;
-		var i;
-		var j;
-		var xx;
-		var yy;
+		var i : int;
+		var j : int;
+		var xx : int;
+		var yy : int;
 		for(i=0;i<3;i++)
 			for(j=0;j<3;j++){
 				xx = i - 1;
@@ -411,18 +421,25 @@ static function setLastPosition(x:int,y:int){
 }
 
 
+	
 
-function loadBoard(filepathIncludingFileName : String) {
-	sr = new File.OpenText(Application.dataPath+filepathIncludingFileName);
-	input = "";
+
+function loadBoard() {
+
+	var textData = Resources.Load("board01",TextAsset);
+	
+	var sr :StringReader;
+	sr = new StringReader(textData.text);
+ 
 	while (true) {
+		var input:String;
 		input = sr.ReadLine();
 		
 		if (input == null) { break; }
 		
-		//Debug.Log(""+input);
+		Debug.Log(""+input);
 		
-		tokens = input.Split(" "[0]);
+		var tokens = input.Split(" "[0]);
 	
 		/*
 		for(i=0;i<tokens.length;i++){
@@ -464,13 +481,13 @@ function loadBoard(filepathIncludingFileName : String) {
 		}
 		
 	}
-	sr.Close();
+	
 }
 
 
 function initBoard(x:int, y:int){
-var i;
-var j;
+var i : int;
+var j : int;
 boardSizeX = x;
 boardSizeY = y;
 
@@ -492,6 +509,7 @@ function addDot(x:int,y:int):GameObject{
 	instance.transform.localScale = Vector3(2,2,2);
 	instance.renderer.material.SetColor("_Color",Color.gray);
     instance.renderer.material.color.a = 0.5f;
+    
     return instance;
 	
 }
@@ -507,6 +525,7 @@ function addWallLine(x1:int,y1:int,x2:int,y2:int){
 
 if (x1 == x2)
 	{
+		var i:int;
 		for(i=y1;i<=y2;i++){
 			addWallPoint(x1,i);
 			if (i < y2){
@@ -540,8 +559,8 @@ function addWallPoint(x:int,y:int){
 
 static function getNrPointWalls(x:int,y:int): int{
 		var nrWalls : int = 0;
-		var i;
-		var j;
+		var i : int;
+		var j : int;
 		
 		for(i=0;i<3;i++)
 			for(j=0;j<3;j++){
@@ -555,8 +574,8 @@ static function getNrPointWalls(x:int,y:int): int{
 	
 static function isPointWallInLine(x:int,y:int): boolean{
 		var nrWalls : int = 0;
-		var i;
-		var j;
+		var i : int;
+		var j : int;
 		
 		for(i=0;i<3;i++)
 			if (gameboard[x+i-1,y].isWall){
@@ -582,8 +601,8 @@ static function isPointWallInLine(x:int,y:int): boolean{
 	
 static function getNrOfLines(x:int,y:int): int{
 		var nrLines : int = 0;
-		var i;
-		var j;
+		var i : int;
+		var j : int;
 		
 		for(i=-1;i<2;i++)
 			for(j=-1;j<2;j++){
@@ -597,11 +616,11 @@ static function getNrOfLines(x:int,y:int): int{
 	}	
 
 static function getNrOfUniqueLines(x:int,y:int,xx:int,yy:int){
-		var i;
-		var j;
-		
-		var tx;
-		var ty;
+		var i : int;
+		var j : int;
+		 
+		var tx : int;
+		var ty : int;
 		
 		var o : GameObject;
 		
@@ -627,8 +646,8 @@ static function distance( x1:int,y1:int,x2:int,y2:int):int{
 }	
 
 static function getNrOfLinesInPointAndNeighbours(x:int,y:int): int{
-		var i;
-		var j;
+		var i : int;
+		var j : int;
 		
 		lineHashTable.Clear();
 		
@@ -642,8 +661,8 @@ static function getNrOfLinesInPointAndNeighbours(x:int,y:int): int{
 
 
 static function checkFor16LinesInNeighbours(x:int,y:int){
-		var i;
-		var j;
+		var i:int;
+		var j:int;
 		
 		for(i=-1;i<2;i++)
 			for(j=-1;j<2;j++){
@@ -668,11 +687,32 @@ function OnMouseEnter() {
 function OnMouseExit() {
 }
 
-
 function Update () {
-
-
+	  for (var i = 0; i < Input.touchCount; ++i) {
+	  	var touch = Input.GetTouch(i);
+	    if (touch.phase == TouchPhase.Ended && (lastMoveTime+timeBetweenMoves)<Time.time) {
+	    	lastMoveTime = Time.time;
+	        var touchRay = Camera.current.ScreenPointToRay(Input.GetTouch(i).position);
+	        var hit : RaycastHit;
+	        if (Physics.Raycast(touchRay,hit,10000)){
+	        	doMove(hit.point);
+	      }    
+	    }
+	}
+	
+	
+	
+	  if(Input.GetMouseButtonUp(0) && (lastMoveTime+timeBetweenMoves)<Time.time ){
+		lastMoveTime = Time.time;
+        var mouseRay : Ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+        if (Physics.Raycast (mouseRay,hit,10000)) {
+            doMove(hit.point);
+        }
+    }
+	
 }
+
+
 
 public class GameDot{
 
@@ -731,8 +771,8 @@ public var dot : GameObject;
 	
 	public function getNrLines(): int{
 		var nrLines : int = 0;
-		var i;
-		var j;
+		var i:int;
+		var j:int;
 		
 		for(i=0;i<3;i++)
 			for(j=0;j<3;j++){
@@ -763,4 +803,64 @@ function OnGUI () {
 	if (GUI.Button (Rect (Screen.width-100,70,80,20), "Exit")) {
 		 Application.Quit();
 	}
+}
+
+
+static function doMove(fromPosition:Vector3){
+  var lastPos = Vector3(BoardLoader.lastPositionX*BoardLoader.lineSize,BoardLoader.lastPositionY*BoardLoader.lineSize,0);
+
+  var dist = Vector3.Distance(lastPos, fromPosition);
+
+  var dx = 0;
+  var dy = 0;
+
+    
+	if (dist < (BoardLoader.lineSize * 1.5f))
+	 {
+		var direction = fromPosition - lastPos;
+		
+		direction.x = direction.x / 10;
+		direction.y = direction.y / 10;
+		direction.z = direction.z / 10;
+		
+		direction = direction.normalized;
+		
+		Debug.Log("Direction  "+direction.x+" "+direction.y+" "+direction.z);
+
+		if (direction.x < 0.1f && direction.x > -0.1f){
+			direction.x = 0;
+		}
+		
+		if (direction.y < 0.1f && direction.y > -0.1f){
+			direction.y = 0;
+		}
+		
+				
+		if (direction.normalized.x > 0){
+			dx += 1;
+		}
+		
+		if (direction.normalized.x < 0){
+			dx -= 1;
+		}
+		
+		if (direction.normalized.y > 0){
+			dy += 1;
+		}
+				
+		if (direction.normalized.y < 0){
+			dy -= 1;
+		}
+		
+
+		BoardLoader.tryMove(dx,dy);
+		
+	  }
+	  else{
+	    Debug.Log("Dist "+dist);
+	}
+
+
+  
+
 }

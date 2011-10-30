@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 
-Project("{5BBA8A9F-18F5-078F-9BD6-FC07DB609FFF}") = "4x4", "4x4.csproj", "{CA468E4E-972B-E67F-9A05-6EAA6E61D33A}"
+Project("{5BBA8A9F-18F5-078F-9BD6-FC07DB609FFF}") = "4x4", "Assembly-UnityScript.unityproj", "{4BF9B57E-789D-9AE1-C51C-905E8E5B4129}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CA468E4E-972B-E67F-9A05-6EAA6E61D33A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA468E4E-972B-E67F-9A05-6EAA6E61D33A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CA468E4E-972B-E67F-9A05-6EAA6E61D33A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CA468E4E-972B-E67F-9A05-6EAA6E61D33A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BF9B57E-789D-9AE1-C51C-905E8E5B4129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BF9B57E-789D-9AE1-C51C-905E8E5B4129}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BF9B57E-789D-9AE1-C51C-905E8E5B4129}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BF9B57E-789D-9AE1-C51C-905E8E5B4129}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,11 +5,11 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>9.0.21022</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{CA468E4E-972B-E67F-9A05-6EAA6E61D33A}</ProjectGuid>
+	<ProjectGuid>{4BF9B57E-789D-9AE1-C51C-905E8E5B4129}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
-	<RootNamespace>Irrelevant</RootNamespace>
-	<AssemblyName>Irrelvant</AssemblyName>
+	<RootNamespace></RootNamespace>
+	<AssemblyName>Assembly-UnityScript</AssemblyName>
 	<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
 	<FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -18,7 +18,7 @@
 	<DebugType>full</DebugType>
 	<Optimize>false</Optimize>
 	<OutputPath>Temp\bin\Debug\</OutputPath>
-	<DefineConstants>DEBUG;TRACE;UNITY_3_3_0;UNITY_3_3;UNITY_EDITOR;ENABLE_PROFILER;UNITY_ANDROID;ENABLE_GENERICS;ENABLE_NETWORK;ENABLE_WWW</DefineConstants>
+	<DefineConstants>DEBUG;TRACE;UNITY_3_4_0;UNITY_3_4;UNITY_EDITOR;ENABLE_PROFILER;UNITY_ANDROID;ENABLE_GENERICS;ENABLE_TERRAIN;ENABLE_NETWORK;ENABLE_WWW</DefineConstants>
 	<ErrorReport>prompt</ErrorReport>
 	<WarningLevel>4</WarningLevel>
 	<NoWarn>0169</NoWarn>
@@ -42,18 +42,12 @@
 	<Reference Include="UnityEditor">
 	  <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
 	</Reference>
-	<Reference Include="Boo.Lang">
-	  <HintPath>C:/Program Files/Unity/Editor/Data/Mono/lib/mono/unity/Boo.Lang.dll</HintPath>
-	</Reference>
-	<Reference Include="UnityScript">
-	  <HintPath>C:/Program Files/Unity/Editor/Data/Mono/lib/mono/unity/UnityScript.dll</HintPath>
-	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\Resources\Boards\board01.txt" />
-     <None Include="Assets\BoardLoader.js" />
-     <None Include="Assets\core.js" />
-     <None Include="Assets\mouse.js" />
+     <Compile Include="Assets\BoardLoader.js" />
+     <Compile Include="Assets\core.js" />
+     <Compile Include="Assets\mouse.js" />
+     <None Include="Assets\Resources\board01.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
