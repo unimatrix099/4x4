@@ -13,8 +13,6 @@ static var maxLimitX = 1;
 static var minLimitY = 1;
 static var maxLimitY = 1;
 
-var cameraZoom = 3;
-
 static var playerName : GameObject;
 static var messageGUI : GameObject;
 
@@ -61,9 +59,16 @@ var boardPlane : GameObject;
 var lastMoveTime = 0.0f;
 var timeBetweenMoves = 0.5f;
 
+var controlButtonUp : Texture2D;
+var controlButtonDown : Texture2D;
+var controlButtonLeft : Texture2D;
+var controlButtonRight : Texture2D;
+var controlButtonReset : Texture2D;
+
 function Start () {
 gameIsWon = false;
 dummyObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+dummyObject.renderer.enabled=false;
 loadBoard();
 InitGUI();
 }
@@ -491,19 +496,18 @@ var j : int;
 boardSizeX = x;
 boardSizeY = y;
 
-//mainCamera.transform.position = Vector3(x/2.0f * cameraZoom,y/2.0f * cameraZoom, -(x+y)*cameraZoom);
-
 gameboard = new GameDot[x,y];
 
 for(j=0;j<boardSizeY;j++)
 	for(i=0;i<boardSizeX;i++){
 		gameboard[i,j] = new GameDot();
-		gameboard[i,j].dot = addDot(i,j);
+		//gameboard[i,j].dot = addDot(i,j);
 	}
 
 }
 
 
+/*
 function addDot(x:int,y:int):GameObject{
 	var instance : GameObject = Instantiate(dotPrefab, Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
 	instance.transform.localScale = Vector3(2,2,2);
@@ -512,7 +516,7 @@ function addDot(x:int,y:int):GameObject{
     
     return instance;
 	
-}
+}*/
 
 function addGate(playerId:int,x:int,y:int){
 		var instance : GameObject = Instantiate(playersGatePrefab[playerId], Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
@@ -710,6 +714,12 @@ function Update () {
         }
     }
 	
+	
+	updateMainCamera();
+}
+
+function updateMainCamera(){
+	Camera.main.transform.LookAt(new Vector3(65,40,0));
 }
 
 
@@ -802,6 +812,48 @@ function OnGUI () {
 	// Make the second button.
 	if (GUI.Button (Rect (Screen.width-100,70,80,20), "Exit")) {
 		 Application.Quit();
+	}
+	
+	
+	var controlBox_x = 30;
+	var controlBox_y = 10;
+	
+	// Make a background box
+	GUI.Box (Rect (controlBox_x,controlBox_y,105,140), "Controls");
+
+	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+30,30,30), controlButtonUp)) {
+		Camera.main.transform.position += Vector3.up * 200 * Time.deltaTime;
+		if (Camera.main.transform.position.y > 80){
+			Camera.main.transform.position.y = 80;
+		}
+	}
+
+	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+100,30,30), controlButtonDown)) {
+		Camera.main.transform.position += Vector3.down * 200 * Time.deltaTime;
+		if (Camera.main.transform.position.y < -20){
+			Camera.main.transform.position.y = -20;
+		}
+	}
+	
+	if (GUI.Button (Rect (controlBox_x+5,controlBox_y+65,30,30), controlButtonLeft)) {
+		Camera.main.transform.position += Vector3.left * 200 * Time.deltaTime;
+		if (Camera.main.transform.position.x < 30){
+			Camera.main.transform.position.x = 30;
+		}
+	}
+
+	if (GUI.Button (Rect (controlBox_x+70,controlBox_y+65,30,30), controlButtonRight)) {
+		Camera.main.transform.position += Vector3.right * 200 * Time.deltaTime;
+		if (Camera.main.transform.position.x > 100){
+			Camera.main.transform.position.x = 100;
+		}
+	}
+	
+	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+65,30,30), controlButtonReset)) {
+		Camera.main.transform.position.x = 65;
+		Camera.main.transform.position.y = 40;
+		Camera.main.transform.position.z = -100;
+		
 	}
 }
 
