@@ -2,7 +2,7 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\BoardLoader.js">
     <Files>
-      <File FileName="Assets\BoardLoader.js" Line="698" Column="7" />
+      <File FileName="Assets\BoardLoader.js" Line="392" Column="34" />
       <File FileName="Assets\mouse.js" Line="6" Column="1" />
       <File FileName="Assets\Resources\board01.txt" Line="3" Column="13" />
     </Files>

@@ -31,6 +31,9 @@ var lastPositionPrefabForPlayerB : GameObject;
 
 static var gameboard : GameDot[,];
 
+static var undoPrevPositionX = 0;
+static var undoPrevPositionY = 0;
+static var undoLastPlayer = 0;
 static var prevPositionX = 0;
 static var prevPositionY = 0;
 static var lastPositionX = 0;
@@ -49,6 +52,7 @@ static var playerGates : Vector2[];
 static var playerLines : GameObject[];
 static var playersLastPositionPrefab : GameObject[];
 static var playersGatePrefab : GameObject[];
+static var undoActivated = 1;
 
 static var gameIsWon;
 
@@ -131,16 +135,16 @@ static function checkIfGate(positionX:int, positionY:int):int{
 
 static function validMoveTest1(newPositionX:int,newPositionY:int,dx:int,dy:int, lastX:int, lastY:int,prevX:int,prevY:int){
 	if (newPositionX >= minLimitX && newPositionX <= maxLimitX && newPositionY >= minLimitY && newPositionY <= maxLimitY){
-		Debug.Log("Check 1");
+		//Debug.Log("Check 1");
 		var playerGate = checkIfGate(newPositionX,newPositionY);
 		if ( playerGate == -1 || playerGate == playerCurrent) {
-			Debug.Log("Check 2");
+			//Debug.Log("Check 2");
 			if (gameboard[lastX,lastY].getLine(dx,dy) == null){
-				Debug.Log("Check 3");
+				//Debug.Log("Check 3");
 				if (getNrOfLines(newPositionX,newPositionY) < 7){
-					Debug.Log("Check 4");
+					//Debug.Log("Check 4");
 					if (checkWallCondition(newPositionX,newPositionY,lastX,lastY,prevX,prevY)){
-						Debug.Log("Check OK");
+						//Debug.Log("Check OK");
 						
 						return true;
 					}
@@ -290,12 +294,12 @@ static function checkIfCanMoveAfterMove(x:int,y:int):boolean{
 					//Debug.Log("Check move "+xx+","+yy);
 					if (validMoveTest1(x+xx,y+yy,xx,yy,x,y,lastPositionX,lastPositionY)){
 						possibleMoves++;
-						Debug.Log("Can Move "+xx+","+yy);
+						//Debug.Log("Can Move "+xx+","+yy);
 					}
 				}
 			}
 		
-		Debug.Log("Nr. of possible moves: "+possibleMoves);
+		//Debug.Log("Nr. of possible moves: "+possibleMoves);
 		return possibleMoves > 0;
 }
 
@@ -307,6 +311,8 @@ static function checkIfPlayerMustChange(){
 }
 
 static function changePlayer(){
+	
+	
 	playerCurrent++;
 	if (playerCurrent >= maxNrOfPlayers){
 		playerCurrent = 0;
@@ -314,6 +320,11 @@ static function changePlayer(){
 	
 	setPlayerName();	
 } 
+
+static function undoPlayer(){
+	playerCurrent = undoLastPlayer;
+	setPlayerName();
+}
 
 static function setPlayerName(){
 	playerName.guiText.text = playerNames[playerCurrent];
@@ -350,12 +361,43 @@ static function isInBoardLimits(x:int, y:int):boolean{
 	return false;
 }
 
+static function undoMove(){
+if (undoActivated == 0){
+		undoActivated = 1;
+		
+		var dx = prevPositionX - lastPositionX;
+		var dy = prevPositionY - lastPositionY;
+		
+		Debug.Log("PrevPos("+prevPositionX+","+prevPositionY+")"+" LastPos("+lastPositionX+","+lastPositionY+") dx:"+dx+" dy:"+dy);
+
+		removeLineUnit(lastPositionX,lastPositionY,dx,dy);
+
+
+		lastPositionX = prevPositionX;
+		lastPositionY = prevPositionY;
+
+		prevPositionX = undoPrevPositionX;
+		prevPositionY = undoPrevPositionY;
+		
+		undoPlayer();
+		
+		setLastPosition(lastPositionX,lastPositionY);
+	}
+}
 
 static function move(dx:int,dy:int,linePrefab:GameObject)
 {
+		Debug.Log("Move dx: "+dx+" dy:"+dy);
+		
+		undoLastPlayer = playerCurrent;
+		
 		addLineUnit(lastPositionX,lastPositionY,dx,dy,linePrefab);
 
 		checkFor16LinesInNeighbours(lastPositionX,lastPositionY);
+
+		undoPrevPositionX = prevPositionX;
+		undoPrevPositionY = prevPositionY;
+		undoActivated = 0;
 
 		prevPositionX = lastPositionX;
 		prevPositionY = lastPositionY;
@@ -377,6 +419,8 @@ static function move(dx:int,dy:int,linePrefab:GameObject)
 		setLastPosition(lastPositionX,lastPositionY);
 		
 		messageGUI.guiText.text="";
+		
+		
 }
 
 static function announceWinnder(winner:int){
@@ -390,11 +434,31 @@ static function addLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject){
 	var line : GameObject = addBaseLineUnit(x1,y1,dx,dy,linePrefab);
 }
 
+static function removeLineUnit(x:int,y:int,dx:int,dy:int){
+	var gameObject = gameboard[x,y].getLine(dx,dy);
+	gameObject.renderer.enabled = false;
+	Destroy(gameObject);
+	
+	var gameObject1 = gameboard[x+dx,y+dy].getLine(-dx,-dy);
+	gameObject1.renderer.enabled = false;
+	Destroy(gameObject1);
+	
+	gameboard[x,y].setLine(dx,dy,null);
+	gameboard[x+dx,y+dy].setLine(-dx,-dy,null);
+	
+	Debug.Log("Add line at "+x+","+y+" dx="+dx+" dy="+dy);
+	Debug.Log("Add line at "+(x+dx)+","+(y+dy)+" dx="+(-dx)+" dy="+(-dy));
+}
+
 static function addBaseLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject) : GameObject{
 	var line : GameObject = Instantiate(linePrefab, Vector3((x1+dx/2.0f) * lineSize, (y1+dy/2.0f) * lineSize, 0), Quaternion.FromToRotation (Vector3(1,0,0), Vector3(dx,dy,0)));
 	if (dx != 0 && dy != 0){
 		line.transform.localScale = Vector3(1.5f ,1.0f,1.0f);
 	}
+	
+	Debug.Log("Add line at "+x1+","+y1+" dx="+dx+" dy="+dy);
+	Debug.Log("Add line at "+(x1+dx)+","+(y1+dy)+" dx="+(-dx)+" dy="+(-dy));
+	
 	
 	gameboard[x1,y1].setLine(dx,dy,line);
 	gameboard[x1+dx,y1+dy].setLine(-dx,-dy,line);
@@ -802,7 +866,7 @@ public var dot : GameObject;
 
 function OnGUI () {
 	// Make a background box
-	GUI.Box (Rect (Screen.width-110,10,100,90), "Menu");
+	GUI.Box (Rect (Screen.width-110,10,100,120), "Menu");
 
 	// Make the first button. If it is pressed, Application.Loadlevel (1) will be executed
 	if (GUI.Button (Rect (Screen.width-100,40,80,20), "Reset")) {
@@ -810,7 +874,12 @@ function OnGUI () {
 	}
 
 	// Make the second button.
-	if (GUI.Button (Rect (Screen.width-100,70,80,20), "Exit")) {
+	if (GUI.Button (Rect (Screen.width-100,70,80,20), "Undo")) {
+		 undoMove();
+	}
+	
+		// Make the second button.
+	if (GUI.Button (Rect (Screen.width-100,100,80,20), "Exit")) {
 		 Application.Quit();
 	}
 	
