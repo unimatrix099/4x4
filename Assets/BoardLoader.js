@@ -139,9 +139,9 @@ static function validMoveTest1(newPositionX:int,newPositionY:int,dx:int,dy:int, 
 		var playerGate = checkIfGate(newPositionX,newPositionY);
 		if ( playerGate == -1 || playerGate == playerCurrent) {
 			//Debug.Log("Check 2");
-			if (gameboard[lastX,lastY].getLine(dx,dy) == null){
+			if (gameboard[lastX,lastY].getLine(dx,dy) == null || gameboard[lastX+dx,lastY+dy].dot16 || gameboard[lastX,lastY].dot16){
 				//Debug.Log("Check 3");
-				if (getNrOfLines(newPositionX,newPositionY) < 7){
+				if (true /*getNrOfLines(newPositionX,newPositionY) < 7 */){
 					//Debug.Log("Check 4");
 					if (checkWallCondition(newPositionX,newPositionY,lastX,lastY,prevX,prevY)){
 						//Debug.Log("Check OK");
@@ -178,7 +178,9 @@ static function validMove(dx:int,dy:int): boolean{
 		var newPositionY = lastPositionY + dy;
 		
 		if (validMoveTest1(newPositionX,newPositionY,dx,dy,lastPositionX,lastPositionY,prevPositionX,prevPositionY)){
-			if (gameboard[lastPositionX,lastPositionY].getLine(dx,dy) == null){
+			return true;
+			// disabled check for blocking move
+			/*if (gameboard[lastPositionX,lastPositionY].getLine(dx,dy) == null){
 				addDummyBaseLineUnit(lastPositionX,lastPositionY,dx,dy);
 			}
 			
@@ -191,7 +193,7 @@ static function validMove(dx:int,dy:int): boolean{
 			
 			if (gameboard[lastPositionX,lastPositionY].getLine(dx,dy) == dummyObject){
 				removeDummyBaseLineUnit(lastPositionX,lastPositionY,dx,dy);
-			}
+			}*/
 		}
 	}
 	return validMove;
@@ -392,7 +394,7 @@ static function move(dx:int,dy:int,linePrefab:GameObject)
 		undoLastPlayer = playerCurrent;
 		
 		addLineUnit(lastPositionX,lastPositionY,dx,dy,linePrefab);
-
+		
 		checkFor16LinesInNeighbours(lastPositionX,lastPositionY);
 
 		undoPrevPositionX = prevPositionX;
@@ -404,8 +406,12 @@ static function move(dx:int,dy:int,linePrefab:GameObject)
 								
 		lastPositionX = lastPositionX+dx;
 		lastPositionY = lastPositionY+dy;
+		
+		if (!checkIfCanMoveAfterMove(lastPositionX,lastPositionY)){
+			changePlayer();
+			announceWinnder(playerCurrent);
+		}
 
-	
 		var isPlayerGate:int = checkIfGate(lastPositionX,lastPositionY);
 
 		if (isPlayerGate != -1 ){
@@ -422,6 +428,8 @@ static function move(dx:int,dy:int,linePrefab:GameObject)
 		
 		
 }
+
+
 
 static function announceWinnder(winner:int){
 	gameIsWon = true;
@@ -565,22 +573,22 @@ gameboard = new GameDot[x,y];
 for(j=0;j<boardSizeY;j++)
 	for(i=0;i<boardSizeX;i++){
 		gameboard[i,j] = new GameDot();
-		//gameboard[i,j].dot = addDot(i,j);
+		gameboard[i,j].dot = addDot(i,j);
 	}
 
 }
 
 
-/*
+
 function addDot(x:int,y:int):GameObject{
 	var instance : GameObject = Instantiate(dotPrefab, Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
 	instance.transform.localScale = Vector3(2,2,2);
 	instance.renderer.material.SetColor("_Color",Color.gray);
     instance.renderer.material.color.a = 0.5f;
-    
+    instance.renderer.active = false;
     return instance;
 	
-}*/
+}
 
 function addGate(playerId:int,x:int,y:int){
 		var instance : GameObject = Instantiate(playersGatePrefab[playerId], Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
@@ -735,12 +743,28 @@ static function checkFor16LinesInNeighbours(x:int,y:int){
 		for(i=-1;i<2;i++)
 			for(j=-1;j<2;j++){
 				var nrLines = getNrOfLinesInPointAndNeighbours(x+i,y+j);
-				if ( nrLines >= 16){
+				if ( nrLines >= 16 && numberOfNeighboursThatAre16(x+i,y+j) == 0){
+					gameboard[x+i,y+j].dot16 = true;
+					gameboard[x+i,y+j].dot.renderer.active=true;
 					gameboard[x+i,y+j].dot.renderer.material.SetColor("_Color",Color.yellow);
 				}
 			}
 
 	}
+	
+static function numberOfNeighboursThatAre16(x:int,y:int){
+	var i:int;
+	var j:int;
+	var count:int;
+	count = 0;
+	for(i=-1;i<2;i++)
+		for(j=-1;j<2;j++){
+			if (gameboard[x+i,y+j].dot16){
+				count++;
+			}
+		}
+	return count;		
+}
 
 function OnMouseDown() {
 }
@@ -802,6 +826,8 @@ public var isWall : boolean;
 
 public var state : int;
 
+public var dot16 : boolean;
+
 public var lines : GameObject[,];
 
 public var wallLines : GameObject[,];
@@ -813,6 +839,7 @@ public var dot : GameObject;
 		isWall = false;
 		lines = new GameObject[3,3];
 		wallLines = new GameObject[3,3];
+		dot16 = false;
 	}
 	
 	public function setLine(dx:int,dy:int,line:GameObject){
@@ -892,29 +919,29 @@ function OnGUI () {
 
 	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+30,30,30), controlButtonUp)) {
 		Camera.main.transform.position += Vector3.up * 200 * Time.deltaTime;
-		if (Camera.main.transform.position.y > 80){
-			Camera.main.transform.position.y = 80;
+		if (Camera.main.transform.position.y > 60){
+			Camera.main.transform.position.y = 60;
 		}
 	}
 
 	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+100,30,30), controlButtonDown)) {
 		Camera.main.transform.position += Vector3.down * 200 * Time.deltaTime;
-		if (Camera.main.transform.position.y < -20){
-			Camera.main.transform.position.y = -20;
+		if (Camera.main.transform.position.y < 10){
+			Camera.main.transform.position.y = 10;
 		}
 	}
 	
 	if (GUI.Button (Rect (controlBox_x+5,controlBox_y+65,30,30), controlButtonLeft)) {
 		Camera.main.transform.position += Vector3.left * 200 * Time.deltaTime;
-		if (Camera.main.transform.position.x < 30){
-			Camera.main.transform.position.x = 30;
+		if (Camera.main.transform.position.x < 45){
+			Camera.main.transform.position.x = 45;
 		}
 	}
 
 	if (GUI.Button (Rect (controlBox_x+70,controlBox_y+65,30,30), controlButtonRight)) {
 		Camera.main.transform.position += Vector3.right * 200 * Time.deltaTime;
-		if (Camera.main.transform.position.x > 100){
-			Camera.main.transform.position.x = 100;
+		if (Camera.main.transform.position.x > 85){
+			Camera.main.transform.position.x = 85;
 		}
 	}
 	

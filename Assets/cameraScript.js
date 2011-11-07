@@ -31,16 +31,21 @@ function OnPostRender() {
 	var x:int;
 	var y:int;
 	var limit = 200;
+	var lineLen = 2.0f;
 
 	for(x=-limit;x<limit;x=x+10){
-    	GL.Vertex3( x, -limit, 0 );
-	    GL.Vertex3( x, limit, 0 );
-	}
+		for(y=-limit;y<limit;y=y+lineLen*2){
+		 	GL.Vertex3( x, y-lineLen/2, 0 );
+	    	GL.Vertex3( x, y+lineLen/2, 0 );
+		}
+   }
 	
 	for(y=-limit;y<limit;y=y+10){
-    	GL.Vertex3( -limit, y, 0 );
-	    GL.Vertex3( limit, y, 0 );
-	}
+		for(x=-limit;x<limit;x=x+lineLen*2){
+		   	GL.Vertex3( x-lineLen/2, y, 0 );
+		    GL.Vertex3( x+lineLen/2, y, 0 );
+		}
+ 	}
 
     GL.End();
 } 
