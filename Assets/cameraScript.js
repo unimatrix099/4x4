@@ -26,7 +26,7 @@ function OnPostRender() {
     lineMaterial.SetPass( 0 );
 
     GL.Begin( GL.LINES );
-    GL.Color( Color(0.7,0.7,0.7,0.5) );
+    GL.Color( Color(0.9,0.9,0.9,0.7) );
 
 	var x:int;
 	var y:int;
@@ -47,5 +47,32 @@ function OnPostRender() {
 		}
  	}
 
+	renderESCPointLines();
+
     GL.End();
 } 
+
+function renderESCPointLines(){
+	var x:int;
+	var y:int;
+	var z:int;
+	
+	var limit = 2000;
+	var lineLen = 2.0f;
+	var lineSize = BoardLoader.lineSize;
+	
+	GL.PushMatrix();
+	
+	for(y=BoardLoader.minLimitY;y<=BoardLoader.maxLimitY;y++){
+		for(x=BoardLoader.minLimitX;x<=BoardLoader.maxLimitX;x++){
+			if (BoardLoader.gameboard[x,y].dot16){
+				for(z=-limit;z<limit;z=z+lineLen*2){
+		   			GL.Vertex3( x*lineSize, y*lineSize, z-lineLen/2 );
+		    		GL.Vertex3( x*lineSize, y*lineSize, z+lineLen/2 );
+				}
+			}
+		}
+	}
+	
+	GL.PopMatrix();
+}

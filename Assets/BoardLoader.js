@@ -740,16 +740,18 @@ static function checkFor16LinesInNeighbours(x:int,y:int){
 		var i:int;
 		var j:int;
 		
-		for(i=-1;i<2;i++)
-			for(j=-1;j<2;j++){
-				var nrLines = getNrOfLinesInPointAndNeighbours(x+i,y+j);
-				if ( nrLines >= 16 && numberOfNeighboursThatAre16(x+i,y+j) == 0){
-					gameboard[x+i,y+j].dot16 = true;
-					gameboard[x+i,y+j].dot.renderer.active=true;
-					gameboard[x+i,y+j].dot.renderer.material.SetColor("_Color",Color.yellow);
+		if (!gameboard[x,y].isWall){
+			for(i=-1;i<2;i++){
+				for(j=-1;j<2;j++){
+					var nrLines = getNrOfLinesInPointAndNeighbours(x+i,y+j);
+					if ( nrLines >= 16 && numberOfNeighboursThatAre16(x+i,y+j) == 0){
+						gameboard[x+i,y+j].dot16 = true;
+						gameboard[x+i,y+j].dot.renderer.active=true;
+						gameboard[x+i,y+j].dot.renderer.material.SetColor("_Color",Color.yellow);
+					}
 				}
 			}
-
+		}
 	}
 	
 static function numberOfNeighboursThatAre16(x:int,y:int){

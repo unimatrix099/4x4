@@ -1,11 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\BoardLoader.js">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\cameraScript.js">
     <Files>
-      <File FileName="Assets\BoardLoader.js" Line="950" Column="38" />
+      <File FileName="Assets\BoardLoader.js" Line="9" Column="20" />
       <File FileName="Assets\mouse.js" Line="6" Column="1" />
       <File FileName="Assets\Resources\board01.txt" Line="3" Column="13" />
-      <File FileName="Assets\cameraScript.js" Line="34" Column="20" />
+      <File FileName="Assets\cameraScript.js" Line="29" Column="36" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -13,7 +13,7 @@
           <Node name="Assembly-UnityScript" expanded="True">
             <Node name="Assets" expanded="True">
               <Node name="Resources" expanded="True" />
-              <Node name="BoardLoader.js" selected="True" />
+              <Node name="cameraScript.js" selected="True" />
             </Node>
           </Node>
         </State>
