@@ -60,9 +60,6 @@ function renderESCPointLines(){
 	var limit = 2000;
 	var lineLen = 2.0f;
 	var lineSize = BoardLoader.lineSize;
-	
-	GL.PushMatrix();
-	
 	for(y=BoardLoader.minLimitY;y<=BoardLoader.maxLimitY;y++){
 		for(x=BoardLoader.minLimitX;x<=BoardLoader.maxLimitX;x++){
 			if (BoardLoader.gameboard[x,y].dot16){
@@ -73,6 +70,4 @@ function renderESCPointLines(){
 			}
 		}
 	}
-	
-	GL.PopMatrix();
 }

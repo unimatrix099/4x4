@@ -28,6 +28,11 @@ var mainCamera : Camera;
 var lastPositionPrefabForPlayerA : GameObject;
 var lastPositionPrefabForPlayerB : GameObject;
 
+var showResetDialog = false;
+var showExitDialog = false;
+
+var resetDialogCanceled = false;
+var exitDialogCanceled = false;
 
 static var gameboard : GameDot[,];
 
@@ -134,6 +139,13 @@ static function checkIfGate(positionX:int, positionY:int):int{
 }
 
 static function validMoveTest1(newPositionX:int,newPositionY:int,dx:int,dy:int, lastX:int, lastY:int,prevX:int,prevY:int){
+	/*
+	Debug.Log("ValidMoveTest1");
+	Debug.Log("newPosition: "+newPositionX+","+newPositionY);
+	Debug.Log("dx: "+dx+","+dy);
+	Debug.Log("lastPosition: "+lastX+","+lastY);
+	Debug.Log("prevPosition: "+prevX+","+prevY);
+	*/
 	if (newPositionX >= minLimitX && newPositionX <= maxLimitX && newPositionY >= minLimitY && newPositionY <= maxLimitY){
 		//Debug.Log("Check 1");
 		var playerGate = checkIfGate(newPositionX,newPositionY);
@@ -293,10 +305,9 @@ static function checkIfCanMoveAfterMove(x:int,y:int):boolean{
 				xx = i - 1;
 				yy = j - 1; 
 				if ( !(xx == 0 && yy == 0)){
-					//Debug.Log("Check move "+xx+","+yy);
-					if (validMoveTest1(x+xx,y+yy,xx,yy,x,y,lastPositionX,lastPositionY)){
+					if (validMoveTest1(x+xx,y+yy,xx,yy,x,y,prevPositionX,prevPositionY)){
 						possibleMoves++;
-						//Debug.Log("Can Move "+xx+","+yy);
+						Debug.Log("Can Move "+xx+","+yy);
 					}
 				}
 			}
@@ -782,7 +793,17 @@ function OnMouseExit() {
 }
 
 function Update () {
-	  for (var i = 0; i < Input.touchCount; ++i) {
+	
+	
+	  
+	
+	
+	updateMainCamera();
+}
+
+function getMoveUserInput(){
+	if (!showResetDialog && !showExitDialog && !resetDialogCanceled && !exitDialogCanceled){
+		for (var i = 0; i < Input.touchCount; ++i) {
 	  	var touch = Input.GetTouch(i);
 	    if (touch.phase == TouchPhase.Ended && (lastMoveTime+timeBetweenMoves)<Time.time) {
 	    	lastMoveTime = Time.time;
@@ -796,16 +817,14 @@ function Update () {
 	
 	
 	
-	  if(Input.GetMouseButtonUp(0) && (lastMoveTime+timeBetweenMoves)<Time.time ){
+	if(Input.GetMouseButtonUp(0) && (lastMoveTime+timeBetweenMoves)<Time.time ){
 		lastMoveTime = Time.time;
         var mouseRay : Ray = Camera.main.ScreenPointToRay (Input.mousePosition);
         if (Physics.Raycast (mouseRay,hit,10000)) {
             doMove(hit.point);
         }
-    }
-	
-	
-	updateMainCamera();
+    	}
+	}
 }
 
 function updateMainCamera(){
@@ -894,12 +913,26 @@ public var dot : GameObject;
 /* Example level loader */
 
 function OnGUI () {
+
+
+
 	// Make a background box
 	GUI.Box (Rect (Screen.width-110,10,100,120), "Menu");
 
+	GUI.enabled = true;
+
+
 	// Make the first button. If it is pressed, Application.Loadlevel (1) will be executed
 	if (GUI.Button (Rect (Screen.width-100,40,80,20), "Reset")) {
-		Application.LoadLevel (0);
+		if (!showResetDialog){
+			showResetDialog = true;
+		}
+	}
+
+	if (showResetDialog){
+		
+		GUI.enabled = true;
+		GUI.Window(1, new Rect(Screen.width/2-150,Screen.height/2-100,300,200), DrawResetGameConfirmationWindow, "Confirmation Dialog");
 	}
 
 	// Make the second button.
@@ -909,7 +942,15 @@ function OnGUI () {
 	
 		// Make the second button.
 	if (GUI.Button (Rect (Screen.width-100,100,80,20), "Exit")) {
-		 Application.Quit();
+		if (!showExitDialog){
+			showExitDialog = true;
+		}
+	}
+	
+	if (showExitDialog){
+		
+		GUI.enabled = true;
+		GUI.Window(1, new Rect(Screen.width/2-150,Screen.height/2-100,300,200), DrawExitGameConfirmationWindow, "Confirmation Dialog");
 	}
 	
 	
@@ -928,8 +969,8 @@ function OnGUI () {
 
 	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+100,30,30), controlButtonDown)) {
 		Camera.main.transform.position += Vector3.down * 200 * Time.deltaTime;
-		if (Camera.main.transform.position.y < 10){
-			Camera.main.transform.position.y = 10;
+		if (Camera.main.transform.position.y < 0){
+			Camera.main.transform.position.y = 0;
 		}
 	}
 	
@@ -953,59 +994,46 @@ function OnGUI () {
 		Camera.main.transform.position.z = -100;
 		
 	}
+	
+	getMoveUserInput();
+	resetDialogCanceled = false;
+	exitDialogCanceled = false;
 }
 
 
 static function doMove(fromPosition:Vector3){
-  var lastPos = Vector3(BoardLoader.lastPositionX*BoardLoader.lineSize,BoardLoader.lastPositionY*BoardLoader.lineSize,0);
+    var dx:int;
+    var dy:int;
 
-  var dist = Vector3.Distance(lastPos, fromPosition);
-
-  var dx = 0;
-  var dy = 0;
+	var minDistance:float;
+	var minDx = 3;
+	var minDy = 3;
+	minDistance = 1000.0f;
+	
+  for(dy=-1;dy<=1;dy++){
+	for(dx=-1;dx<=1;dx++){
+	
+		if (!(dx == 0 && dy ==0)){
+   		  var possibleNewPos = Vector3((BoardLoader.lastPositionX+dx)*BoardLoader.lineSize,(BoardLoader.lastPositionY+dy)*BoardLoader.lineSize,0);
+	  
+		  var dist = Vector3.Distance(possibleNewPos, fromPosition);
+	
+		  if (dist < minDistance ){
+		  	minDistance = dist;
+		  	minDx = dx;
+		  	minDy = dy;
+		  }
+		}
+	}
+  }
+  
+  Debug.Log("MinDist: "+minDistance+" direction=("+minDx+","+minDy+")");
 
     
-	if (dist < (BoardLoader.lineSize * 1.5f))
+	if (minDistance < (BoardLoader.lineSize))
 	 {
-		var direction = fromPosition - lastPos;
-		
-		direction.x = direction.x / 10;
-		direction.y = direction.y / 10;
-		direction.z = direction.z / 10;
-		
-		direction = direction.normalized;
-		
-		Debug.Log("Direction  "+direction.x+" "+direction.y+" "+direction.z);
-
-		if (direction.x < 0.1f && direction.x > -0.1f){
-			direction.x = 0;
-		}
-		
-		if (direction.y < 0.1f && direction.y > -0.1f){
-			direction.y = 0;
-		}
-		
-				
-		if (direction.normalized.x > 0){
-			dx += 1;
-		}
-		
-		if (direction.normalized.x < 0){
-			dx -= 1;
-		}
-		
-		if (direction.normalized.y > 0){
-			dy += 1;
-		}
-				
-		if (direction.normalized.y < 0){
-			dy -= 1;
-		}
-		
-
-		BoardLoader.tryMove(dx,dy);
-		
-	  }
+		BoardLoader.tryMove(minDx,minDy);
+	 }
 	  else{
 	    Debug.Log("Dist "+dist);
 	}
@@ -1014,3 +1042,40 @@ static function doMove(fromPosition:Vector3){
   
 
 }
+
+
+function DrawResetGameConfirmationWindow(windowId:int) {
+	var windowRect = new Rect(30,70,280,200);
+
+    GUI.Label(windowRect,"Do you want to reset the current game?");
+    
+    if(GUI.Button(new Rect(20, 140,100,40),"Yes")) {
+       showResetDialog = false;
+       Application.LoadLevel (0);
+    }
+    if(GUI.Button(new Rect(180, 140,100,40),"No")) {
+       showResetDialog = false;
+       resetDialogCanceled = true;
+    }
+    
+    GUI.DragWindow();
+    GUI.BringWindowToFront(windowId);
+ }
+ 
+ function DrawExitGameConfirmationWindow(windowId:int) {
+	var windowRect = new Rect(30,70,280,200);
+
+    GUI.Label(windowRect,"Do you want to exit the game?");
+    
+    if(GUI.Button(new Rect(20, 140,100,40),"Yes")) {
+       showExitDialog = false;
+       Application.Quit();
+    }
+    if(GUI.Button(new Rect(180, 140,100,40),"No")) {
+       showExitDialog = false;
+       exitDialogCanceled = true;
+    }
+    
+    GUI.DragWindow();
+    GUI.BringWindowToFront(windowId);
+ }
