@@ -2,6 +2,14 @@ import System.IO;
 
 #pragma strict
 
+// sounds 
+
+var startGameSound : AudioClip;
+var endGameSound : AudioClip;
+var doMoveSound : AudioClip;
+var cantDoMoveSound : AudioClip;
+var addESCPointSound : AudioClip;
+
 
 var lines : int;
 static var boardSizeX = 0;
@@ -80,6 +88,7 @@ dummyObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
 dummyObject.renderer.enabled=false;
 loadBoard();
 InitGUI();
+audio.PlayOneShot(startGameSound,2.0f);
 }
 
 function InitPlayers(){
@@ -118,13 +127,13 @@ messageGUI.guiText.text = "";
 setPlayerName();
 }
 
-static function tryMove(dx:int,dy:int): boolean{
+function tryMove(dx:int,dy:int): boolean{
 	if (validMove(dx,dy)){
 		move(dx,dy,playerLines[playerCurrent]);
-		
+		audio.PlayOneShot(doMoveSound,1.0f);
 		return true;
 	}
-	
+	audio.PlayOneShot(cantDoMoveSound,1.0f);
 	return false;
 }
 
@@ -398,7 +407,7 @@ if (undoActivated == 0){
 	}
 }
 
-static function move(dx:int,dy:int,linePrefab:GameObject)
+function move(dx:int,dy:int,linePrefab:GameObject)
 {
 		Debug.Log("Move dx: "+dx+" dy:"+dy);
 		
@@ -442,10 +451,12 @@ static function move(dx:int,dy:int,linePrefab:GameObject)
 
 
 
-static function announceWinnder(winner:int){
+function announceWinnder(winner:int){
 	gameIsWon = true;
 	
 	playerName.guiText.text = "We have a winner! "+playerNames[playerCurrent];
+	
+	audio.PlayOneShot(endGameSound,1.0f);
 
 }
 
@@ -747,7 +758,7 @@ static function getNrOfLinesInPointAndNeighbours(x:int,y:int): int{
 	}
 
 
-static function checkFor16LinesInNeighbours(x:int,y:int){
+function checkFor16LinesInNeighbours(x:int,y:int){
 		var i:int;
 		var j:int;
 		
@@ -759,6 +770,7 @@ static function checkFor16LinesInNeighbours(x:int,y:int){
 						gameboard[x+i,y+j].dot16 = true;
 						gameboard[x+i,y+j].dot.renderer.active=true;
 						gameboard[x+i,y+j].dot.renderer.material.SetColor("_Color",Color.yellow);
+						audio.PlayOneShot(addESCPointSound,1.0f);
 					}
 				}
 			}
@@ -1001,7 +1013,7 @@ function OnGUI () {
 }
 
 
-static function doMove(fromPosition:Vector3){
+function doMove(fromPosition:Vector3){
     var dx:int;
     var dy:int;
 
@@ -1032,7 +1044,7 @@ static function doMove(fromPosition:Vector3){
     
 	if (minDistance < (BoardLoader.lineSize))
 	 {
-		BoardLoader.tryMove(minDx,minDy);
+		tryMove(minDx,minDy);
 	 }
 	  else{
 	    Debug.Log("Dist "+dist);

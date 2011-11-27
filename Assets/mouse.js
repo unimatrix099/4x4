@@ -1,7 +1,6 @@
 
 
 function OnMouseDown() {
-	BoardLoader.doMove(transform.position);
 }
 
 function OnMouseUp() {
