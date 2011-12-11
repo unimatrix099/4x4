@@ -29,7 +29,7 @@ static var touched = 0;
 var dotPrefab : GameObject;
 var linePrefabForPlayerA : GameObject;
 var linePrefabForPlayerB : GameObject;
-var wallPrefab : GameObject;
+
 var gateAPrefab : GameObject;
 var gateBPrefab : GameObject;
 var mainCamera : Camera;
@@ -160,7 +160,7 @@ static function validMoveTest1(newPositionX:int,newPositionY:int,dx:int,dy:int, 
 		var playerGate = checkIfGate(newPositionX,newPositionY);
 		if ( playerGate == -1 || playerGate == playerCurrent) {
 			//Debug.Log("Check 2");
-			if (gameboard[lastX,lastY].getLine(dx,dy) == null || gameboard[lastX+dx,lastY+dy].dot16 || gameboard[lastX,lastY].dot16){
+			if (!gameboard[lastX,lastY].isLine(dx,dy) || gameboard[lastX+dx,lastY+dy].dot16 || gameboard[lastX,lastY].dot16){
 				//Debug.Log("Check 3");
 				if (true /*getNrOfLines(newPositionX,newPositionY) < 7 */){
 					//Debug.Log("Check 4");
@@ -200,21 +200,6 @@ static function validMove(dx:int,dy:int): boolean{
 		
 		if (validMoveTest1(newPositionX,newPositionY,dx,dy,lastPositionX,lastPositionY,prevPositionX,prevPositionY)){
 			return true;
-			// disabled check for blocking move
-			/*if (gameboard[lastPositionX,lastPositionY].getLine(dx,dy) == null){
-				addDummyBaseLineUnit(lastPositionX,lastPositionY,dx,dy);
-			}
-			
-			if (checkIfCanMoveAfterMove(newPositionX,newPositionY)){
-				validMove = true;
-			}
-			else{
-				messageGUI.guiText.text="Rule06. After this move, there are no more moves.";
-			}
-			
-			if (gameboard[lastPositionX,lastPositionY].getLine(dx,dy) == dummyObject){
-				removeDummyBaseLineUnit(lastPositionX,lastPositionY,dx,dy);
-			}*/
 		}
 	}
 	return validMove;
@@ -223,7 +208,7 @@ static function validMove(dx:int,dy:int): boolean{
 static function checkWallCondition(x:int, y:int, lastX:int, lastY:int,prevX:int, prevY:int):boolean{
 	if (gameboard[lastPositionX,lastPositionY].isWall){
 		if (!(prevX == lastPositionX && prevY == lastPositionY)){
-			return checkWallConditionCase1(x,y,lastX,lastY,prevX,prevY) && checkWallConditionCase2(x,y,lastX,lastY,prevX,prevY) && checkWallConditionCase3(x,y,lastX,lastY,prevX,prevY);
+			return checkWallConditionCase1(x,y,lastX,lastY,prevX,prevY) && checkWallConditionCase2(x,y,lastX,lastY,prevX,prevY);
 		}
 	}
 	return true;
@@ -254,51 +239,6 @@ static function checkWallConditionCase2(x:int, y:int,lastX:int, lastY:int,prevX:
 	    } 
 	}
 	return true;
-}
-
-static function checkWallConditionCase3(x:int, y:int,lastX:int, lastY:int,prevX:int, prevY:int){
-	return true;
-	/*
-	if (gameboard[lastX+1,lastY+1].isWall && gameboard[lastX,lastY].getLine(1,1) != null)
-		if (gameboard[lastX-1,lastY-1].isWall && gameboard[lastX,lastY].getLine(-1,-1) != null){
-			if (prevX <= lastX && prevY <= lastY){
-				if (x <= lastX && y <=lastY){
-					return true;
-				}
-				else{
-					return false;
-				}
-			}
-			if (prevX >= lastX && prevY >= lastY){
-				if (x >= lastX && y >=lastY){
-					return true;
-				}
-				else{
-					return false;
-				}
-			}
-		} 
-	if (gameboard[lastX-1,lastY+1].isWall && gameboard[lastX,lastY].getLine(-1,1) != null)
-		if (gameboard[lastX+1,lastY-1].isWall && gameboard[lastX,lastY].getLine(1,-1) != null){
-			if (prevX <= lastX && prevY <= lastY){
-				if (x <= lastX && y <=lastY){
-					return true;
-				}
-				else{
-					return false;
-				}
-			}
-			if (prevX >= lastX && prevY >= lastY){
-				if (x >= lastX && y >=lastY){
-					return true;
-				}
-				else{
-					return false;
-				}
-			}
-		}
-
-	return true;*/
 }
 
 
@@ -465,16 +405,16 @@ static function addLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject){
 }
 
 static function removeLineUnit(x:int,y:int,dx:int,dy:int){
-	var gameObject = gameboard[x,y].getLine(dx,dy);
+	var gameObject = gameboard[x,y].getLineObject(dx,dy);
 	gameObject.renderer.enabled = false;
 	Destroy(gameObject);
 	
-	var gameObject1 = gameboard[x+dx,y+dy].getLine(-dx,-dy);
+	var gameObject1 = gameboard[x+dx,y+dy].getLineObject(-dx,-dy);
 	gameObject1.renderer.enabled = false;
 	Destroy(gameObject1);
 	
-	gameboard[x,y].setLine(dx,dy,null);
-	gameboard[x+dx,y+dy].setLine(-dx,-dy,null);
+	gameboard[x,y].setLineObject(dx,dy,null);
+	gameboard[x+dx,y+dy].setLineObject(-dx,-dy,null);
 	
 	Debug.Log("Add line at "+x+","+y+" dx="+dx+" dy="+dy);
 	Debug.Log("Add line at "+(x+dx)+","+(y+dy)+" dx="+(-dx)+" dy="+(-dy));
@@ -490,21 +430,14 @@ static function addBaseLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObjec
 	Debug.Log("Add line at "+(x1+dx)+","+(y1+dy)+" dx="+(-dx)+" dy="+(-dy));
 	
 	
-	gameboard[x1,y1].setLine(dx,dy,line);
-	gameboard[x1+dx,y1+dy].setLine(-dx,-dy,line);
+	gameboard[x1,y1].setLineObject(dx,dy,line);
+	gameboard[x1+dx,y1+dy].setLineObject(-dx,-dy,line);
+	
+	gameboard[x1,y1].setLine(dx,dy);
+	gameboard[x1+dx,y1+dy].setLine(-dx,-dy);
+	
 	return line;
 }
-
-static function addDummyBaseLineUnit(x1:int,y1:int,dx:int,dy:int){
-	gameboard[x1,y1].setLine(dx,dy,dummyObject);
-	gameboard[x1+dx,y1+dy].setLine(-dx,-dy,dummyObject);
-}
-
-static function removeDummyBaseLineUnit(x1:int,y1:int,dx:int,dy:int){
-	gameboard[x1,y1].setLine(dx,dy,dummyObject);
-	gameboard[x1+dx,y1+dy].setLine(-dx,-dy,dummyObject);
-}
-
 
 static function setLastPosition(x:int,y:int){
 	if (lastPositionMarker != null){
@@ -627,7 +560,7 @@ if (x1 == x2)
 		for(i=y1;i<=y2;i++){
 			addWallPoint(x1,i);
 			if (i < y2){
-			addWallLineUnit(x1,i,0,1,wallPrefab);
+			addWallLineUnit(x1,i,0,1);
 			}
 		}
 	}
@@ -636,17 +569,19 @@ if (y1 == y2){
 	for(i=x1;i<=x2;i++){
 			addWallPoint(i,y1);
 			if (i < x2){
-				addWallLineUnit(i,y1,1,0,wallPrefab);
+				addWallLineUnit(i,y1,1,0);
 			}
 		}
 	}
 }
 
 
-static function addWallLineUnit(x1:int,y1:int,dx:int,dy:int,wallPrefab:GameObject){
-	var wallLine : GameObject = addBaseLineUnit(x1,y1,dx,dy,wallPrefab);
-	gameboard[x1,y1].setWallLine(dx,dy,wallLine);
-	gameboard[x1+dx,y1+dy].setWallLine(-dx,-dy,wallLine);
+static function addWallLineUnit(x1:int,y1:int,dx:int,dy:int){
+	gameboard[x1,y1].setLine(dx,dy);
+	gameboard[x1+dx,y1+dy].setLine(-dx,-dy);
+
+	gameboard[x1,y1].setWallLine(dx,dy);
+	gameboard[x1+dx,y1+dy].setWallLine(-dx,-dy);
 }
 
 function addWallPoint(x:int,y:int){
@@ -704,7 +639,7 @@ static function getNrOfLines(x:int,y:int): int{
 		
 		for(i=-1;i<2;i++)
 			for(j=-1;j<2;j++){
-				if (gameboard[x,y].getLine(i,j) != null){
+				if (gameboard[x,y].isLine(i,j)){
 					nrLines++;
 				}
 			}
@@ -725,7 +660,7 @@ static function getNrOfUniqueLines(x:int,y:int,xx:int,yy:int){
 		if (x >= 0 && x <= boardSizeX && y >= 0 && y <= boardSizeY){
 			for(i=-1;i<2;i++)
 				for(j=-1;j<2;j++){
-					o = gameboard[x,y].getLine(i,j);
+					o = gameboard[x,y].getLineObject(i,j);
 					if ( o != null){
 						if (distance(x,y,xx,yy) < 2 && distance(x+i,y+j,xx,yy) < 2){
 							if (!lineHashTable.ContainsKey(o)){
@@ -859,44 +794,66 @@ public var state : int;
 
 public var dot16 : boolean;
 
-public var lines : GameObject[,];
+public var lineObjects : GameObject[,];
 
-public var wallLines : GameObject[,];
+public var lines : boolean[,];
+
+public var wallLines : boolean[,];
 
 public var dot : GameObject;
 
 	function GameDot(){
 		state = DOT_EMPTY;
 		isWall = false;
-		lines = new GameObject[3,3];
-		wallLines = new GameObject[3,3];
+		lineObjects = new GameObject[3,3];
+		lines = new boolean[3,3];
+		wallLines = new boolean[3,3];
 		dot16 = false;
-	}
-	
-	public function setLine(dx:int,dy:int,line:GameObject){
-		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
-			lines[dx+1,dy+1] = line;
+		for(var x = 0;x<3;x++){
+			for(var y = 0;y<3;y++){
+				lines[x,y]=false;
+				wallLines[x,y]=false;
+			}
 		}
 	}
 	
-	public function getLine(dx:int,dy:int): GameObject{
+	public function setLineObject(dx:int,dy:int,line:GameObject){
+		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
+			lineObjects[dx+1,dy+1] = line;
+		}
+	}
+	
+	public function getLineObject(dx:int,dy:int): GameObject{
+		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
+			return lineObjects[dx+1,dy+1];
+		}
+		return null;
+	}
+	
+	public function setLine(dx:int,dy:int){
+		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
+			lines[dx+1,dy+1] = true;
+		}
+	}
+	
+	public function isLine(dx:int,dy:int): boolean{
 		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
 			return lines[dx+1,dy+1];
 		}
-		return null;
+		return false;
 	}
 	
-	public function setWallLine(dx:int,dy:int,line:GameObject){
+	public function setWallLine(dx:int,dy:int){
 		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
-			wallLines[dx+1,dy+1] = line;
+			wallLines[dx+1,dy+1] = true;
 		}
 	}
 	
-	public function getWallLine(dx:int,dy:int): GameObject{
+	public function getWallLine(dx:int,dy:int): boolean{
 		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
 			return wallLines[dx+1,dy+1];
 		}
-		return null;
+		return false;
 	}
 	
 	
@@ -908,7 +865,7 @@ public var dot : GameObject;
 		
 		for(i=0;i<3;i++)
 			for(j=0;j<3;j++){
-				if (lines[i,j] != null){
+				if (lines[i,j]){
 					nrLines++;
 				}
 			}
