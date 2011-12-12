@@ -32,7 +32,7 @@ var linePrefabForPlayerB : GameObject;
 
 var gateAPrefab : GameObject;
 var gateBPrefab : GameObject;
-var mainCamera : Camera;
+
 var lastPositionPrefabForPlayerA : GameObject;
 var lastPositionPrefabForPlayerB : GameObject;
 
@@ -83,6 +83,8 @@ var controlButtonRight : Texture2D;
 var controlButtonReset : Texture2D;
 
 function Start () {
+//Camera.main.transform.RotateAround(centerOfGame,Vector3.forward,-35);
+//Camera.main.transform.RotateAround(centerOfGame,new Vector3(1,1,0),10);
 gameIsWon = false;
 dummyObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
 dummyObject.renderer.enabled=false;
@@ -743,7 +745,7 @@ function Update () {
 	  
 	
 	
-	updateMainCamera();
+	//updateMainCamera();
 }
 
 function getMoveUserInput(){
@@ -772,8 +774,13 @@ function getMoveUserInput(){
 	}
 }
 
+var centerOfGame = new Vector3(65,40,0);
+var cameraUp = new Vector3(0,-1,0);
+
 function updateMainCamera(){
-	Camera.main.transform.LookAt(new Vector3(65,40,0));
+	Camera.main.transform.LookAt(centerOfGame);
+	
+	
 }
 
 
@@ -956,9 +963,9 @@ function OnGUI () {
 	}
 	
 	if (GUI.Button (Rect (controlBox_x+38,controlBox_y+65,30,30), controlButtonReset)) {
-		Camera.main.transform.position.x = 65;
-		Camera.main.transform.position.y = 40;
-		Camera.main.transform.position.z = -100;
+		Camera.main.transform.position.x = 60;
+		Camera.main.transform.position.y = 20;
+		Camera.main.transform.position.z = -60;
 		
 	}
 	
