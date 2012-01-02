@@ -6,9 +6,11 @@ import System.IO;
 
 var startGameSound : AudioClip;
 var endGameSound : AudioClip;
+var endGameByLoosingSound : AudioClip;
 var doMoveSound : AudioClip;
 var cantDoMoveSound : AudioClip;
 var addESCPointSound : AudioClip;
+var changePlayerSound : AudioClip;
 
 
 var lines : int;
@@ -32,6 +34,7 @@ var lineXPrefabForPlayerA : GameObject;
 var lineXPrefabForPlayerB : GameObject;
 var lineXYPrefabForPlayerA : GameObject;
 var lineXYPrefabForPlayerB : GameObject;
+var escPointPrefab : GameObject;
 
 var gateAPrefab : GameObject;
 var gateBPrefab : GameObject;
@@ -280,13 +283,13 @@ static function checkIfCanMoveAfterMove(x:int,y:int):boolean{
 }
 
 
-static function checkIfPlayerMustChange(){
+function checkIfPlayerMustChange(){
 	if (!playerCanMove() && !gameIsWon){
 		changePlayer();
 	}
 }
 
-static function changePlayer(){
+function changePlayer(){
 	
 	
 	playerCurrent++;
@@ -294,7 +297,10 @@ static function changePlayer(){
 		playerCurrent = 0;
 	}
 	
-	setPlayerName();	
+	setPlayerName();
+	
+	audio.PlayOneShot(changePlayerSound,1.0f);
+		
 } 
 
 static function undoPlayer(){
@@ -383,14 +389,14 @@ function move(dx:int,dy:int,linePrefab:GameObject)
 		
 		if (!checkIfCanMoveAfterMove(lastPositionX,lastPositionY)){
 			changePlayer();
-			announceWinnder(playerCurrent);
+			announceWinnder(playerCurrent,true);
 		}
 
 		var isPlayerGate:int = checkIfGate(lastPositionX,lastPositionY);
 
 		if (isPlayerGate != -1 ){
 			if (isPlayerGate == playerCurrent){
-				announceWinnder(playerCurrent);
+				announceWinnder(playerCurrent,false);
 			}
 		}
 
@@ -405,13 +411,17 @@ function move(dx:int,dy:int,linePrefab:GameObject)
 
 
 
-function announceWinnder(winner:int){
+function announceWinnder(winner:int, wonByPlayerMistake:boolean){
 	gameIsWon = true;
 	
 	playerName.guiText.text = "We have a winner! "+playerNames[playerCurrent];
 	
-	audio.PlayOneShot(endGameSound,1.0f);
-
+	if (wonByPlayerMistake){
+		audio.PlayOneShot(endGameByLoosingSound,1.0f);
+	}
+	else{
+		audio.PlayOneShot(endGameSound,1.0f);
+	}
 }
 
 static function addLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject){
@@ -712,12 +722,18 @@ function checkFor16LinesInNeighbours(x:int,y:int){
 			var nrLines = getNrOfLinesInPointAndNeighbours(x+i,y+j);
 			if ( nrLines >= 16 && numberOfNeighboursThatAre16(x+i,y+j) == 0 && !gameboard[x+i,y+j].isWall){
 				gameboard[x+i,y+j].dot16 = true;
-				gameboard[x+i,y+j].dot.renderer.active=true;
-				gameboard[x+i,y+j].dot.renderer.material.SetColor("_Color",Color.yellow);
+				addEscPoint(x+i,y+j);
+				/*gameboard[x+i,y+j].dot.renderer.active=true;
+				gameboard[x+i,y+j].dot.renderer.material.SetColor("_Color",Color.yellow);*/
 				audio.PlayOneShot(addESCPointSound,1.0f);
 			}
 		}
 	}
+}
+
+function addEscPoint(x:int,y:int) : GameObject{
+	var escPoint = Instantiate(escPointPrefab, Vector3(x * lineSize, y * lineSize, -lineSize), Quaternion.identity);
+	return escPoint;
 }
 	
 static function numberOfNeighboursThatAre16(x:int,y:int){
