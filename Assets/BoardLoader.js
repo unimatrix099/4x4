@@ -420,18 +420,14 @@ static function addLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject){
 
 static function removeLineUnit(x:int,y:int,dx:int,dy:int){
 	var gameObject = gameboard[x,y].getLineObject(dx,dy);
-	gameObject.renderer.enabled = false;
 	Destroy(gameObject);
 	
 	var gameObject1 = gameboard[x+dx,y+dy].getLineObject(-dx,-dy);
-	gameObject1.renderer.enabled = false;
 	Destroy(gameObject1);
 	
 	gameboard[x,y].setLineObject(dx,dy,null);
 	gameboard[x+dx,y+dy].setLineObject(-dx,-dy,null);
 	
-	Debug.Log("Add line at "+x+","+y+" dx="+dx+" dy="+dy);
-	Debug.Log("Add line at "+(x+dx)+","+(y+dy)+" dx="+(-dx)+" dy="+(-dy));
 }
 
 static function addBaseLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject) : GameObject{
@@ -839,6 +835,9 @@ public var dot : GameObject;
 	public function setLineObject(dx:int,dy:int,line:GameObject){
 		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
 			lineObjects[dx+1,dy+1] = line;
+			if (line == null){
+				removeLine(dx,dy);
+			}
 		}
 	}
 	
@@ -852,6 +851,12 @@ public var dot : GameObject;
 	public function setLine(dx:int,dy:int){
 		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
 			lines[dx+1,dy+1] = true;
+		}
+	}
+	
+	public function removeLine(dx:int,dy:int){
+		if (dx >= -1 && dx <=1 && dy>= -1 && dy<= 1){
+			lines[dx+1,dy+1] = false;
 		}
 	}
 	
