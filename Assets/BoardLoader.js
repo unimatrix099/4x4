@@ -26,9 +26,12 @@ static var messageGUI : GameObject;
 
 static var touched = 0;
 
+var crossPrefab : GameObject;
 var dotPrefab : GameObject;
-var linePrefabForPlayerA : GameObject;
-var linePrefabForPlayerB : GameObject;
+var lineXPrefabForPlayerA : GameObject;
+var lineXPrefabForPlayerB : GameObject;
+var lineXYPrefabForPlayerA : GameObject;
+var lineXYPrefabForPlayerB : GameObject;
 
 var gateAPrefab : GameObject;
 var gateBPrefab : GameObject;
@@ -60,9 +63,9 @@ static var maxNrOfPlayers = 2;
 
 static var nrPlayers : int = 0;
 static var playerNames : String[];
-static var playerColors : Color[];
 static var playerGates : Vector2[];
-static var playerLines : GameObject[];
+static var playerLinesX : GameObject[];
+static var playerLinesXY : GameObject[];
 static var playersLastPositionPrefab : GameObject[];
 static var playersGatePrefab : GameObject[];
 static var undoActivated = 1;
@@ -100,17 +103,18 @@ playerNames = new String[nrPlayers];
 playerNames[0] = "Player A";
 playerNames[1] = "Player B";
 
-playerColors = new Color[nrPlayers];
-playerColors[0] = Color.red;
-playerColors[1] = Color.blue;
 
 playerGates = new Vector2[nrPlayers];
 
 playerCurrent = 0;
 
-playerLines = new GameObject[nrPlayers];
-playerLines[0] = linePrefabForPlayerA;
-playerLines[1] = linePrefabForPlayerB;
+playerLinesX = new GameObject[nrPlayers];
+playerLinesX[0] = lineXPrefabForPlayerA;
+playerLinesX[1] = lineXPrefabForPlayerB;
+
+playerLinesXY = new GameObject[nrPlayers];
+playerLinesXY[0] = lineXYPrefabForPlayerA;
+playerLinesXY[1] = lineXYPrefabForPlayerB;
 
 playersLastPositionPrefab = new GameObject[nrPlayers];
 playersLastPositionPrefab[0] = lastPositionPrefabForPlayerA;
@@ -129,9 +133,17 @@ messageGUI.guiText.text = "";
 setPlayerName();
 }
 
+function getLineObject(dx:int,dy:int,player:int) : GameObject{
+	if (dx != 0 && dy != 0){
+		return playerLinesXY[player];
+	}
+	return playerLinesX[player];
+}
+
 function tryMove(dx:int,dy:int): boolean{
 	if (validMove(dx,dy)){
-		move(dx,dy,playerLines[playerCurrent]);
+		var line = getLineObject(dx,dy,playerCurrent); 
+		move(dx,dy,line);
 		audio.PlayOneShot(doMoveSound,1.0f);
 		return true;
 	}
@@ -424,13 +436,6 @@ static function removeLineUnit(x:int,y:int,dx:int,dy:int){
 
 static function addBaseLineUnit(x1:int,y1:int,dx:int,dy:int,linePrefab:GameObject) : GameObject{
 	var line : GameObject = Instantiate(linePrefab, Vector3((x1+dx/2.0f) * lineSize, (y1+dy/2.0f) * lineSize, 0), Quaternion.FromToRotation (Vector3(1,0,0), Vector3(dx,dy,0)));
-	if (dx != 0 && dy != 0){
-		line.transform.localScale = Vector3(1.5f ,1.0f,1.0f);
-	}
-	
-	Debug.Log("Add line at "+x1+","+y1+" dx="+dx+" dy="+dy);
-	Debug.Log("Add line at "+(x1+dx)+","+(y1+dy)+" dx="+(-dx)+" dy="+(-dy));
-	
 	
 	gameboard[x1,y1].setLineObject(dx,dy,line);
 	gameboard[x1+dx,y1+dy].setLineObject(-dx,-dy,line);
@@ -531,6 +536,7 @@ for(j=0;j<boardSizeY;j++)
 	for(i=0;i<boardSizeX;i++){
 		gameboard[i,j] = new GameDot();
 		gameboard[i,j].dot = addDot(i,j);
+		addCross(i,j);
 	}
 
 }
@@ -545,6 +551,12 @@ function addDot(x:int,y:int):GameObject{
     instance.renderer.active = false;
     return instance;
 	
+}
+
+
+function addCross(x:int,y:int):GameObject{
+	var instance : GameObject = Instantiate(crossPrefab, Vector3(x * lineSize, y * lineSize, 0), Quaternion.identity);
+	return instance;
 }
 
 function addGate(playerId:int,x:int,y:int){

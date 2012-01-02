@@ -18,7 +18,7 @@ static function CreateLineMaterial() {
         lineMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
     }
 }
-
+/*
 function OnPostRender() {
 
     CreateLineMaterial();
@@ -50,7 +50,7 @@ function OnPostRender() {
 	renderESCPointLines();
 
     GL.End();
-} 
+} */
 
 function renderESCPointLines(){
 	var x:int;
