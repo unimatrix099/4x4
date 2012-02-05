@@ -2,7 +2,7 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\BoardLoader.js">
     <Files>
-      <File FileName="Assets\BoardLoader.js" Line="386" Column="9" />
+      <File FileName="Assets\BoardLoader.js" Line="251" Column="44" />
       <File FileName="Assets\cameraScript.js" Line="10" Column="64" />
       <File FileName="Assets\Resources\board01.txt" Line="3" Column="18" />
       <File FileName="Assets\mouse.js" Line="4" Column="1" />
@@ -22,13 +22,24 @@
       </Pad>
       <Pad Id="MonoDevelop.Debugger.WatchPad">
         <State>
-          <Value>lines[dx+1,dy+1]</Value>
+          <Value>lastPositionX</Value>
+          <Value>lastPositionY</Value>
+          <Value>prevX</Value>
+          <Value>prevY</Value>
+          <Value>x</Value>
+          <Value>y</Value>
+          <Value>gameboard[lastX+1,lastY].isWall</Value>
+          <Value>gameboard[lastX-1,lastY].isWall</Value>
+          <Value>gameboard[lastX,lastY].getWallLine(1,0)</Value>
+          <Value>gameboard[lastX,lastY].getWallLine(-1,0)</Value>
         </State>
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="D:\Development\Unity\Escape\4x4\Assets\BoardLoader.js" line="226" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

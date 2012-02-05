@@ -235,8 +235,8 @@ static function checkWallConditionCase1(x:int, y:int,lastX:int, lastY:int,prevX:
 	Debug.Log("Prev: "+prevX+","+prevY+" "+"Last: "+lastX+","+lastY+" Current:"+x+","+y);
 	
 	if (gameboard[lastX+1,lastY].isWall && gameboard[lastX-1,lastY].isWall){
-		if (gameboard[lastX,lastY].getWallLine(1,0) != null ){
-			if (gameboard[lastX,lastY].getWallLine(-1,0) != null){
+		if (gameboard[lastX,lastY].getWallLine(1,0)){
+			if (gameboard[lastX,lastY].getWallLine(-1,0)){
 				//Debug.Log("checkWallConditionCase1");
 				return y == prevY;
 			}
@@ -248,8 +248,8 @@ static function checkWallConditionCase1(x:int, y:int,lastX:int, lastY:int,prevX:
 
 static function checkWallConditionCase2(x:int, y:int,lastX:int, lastY:int,prevX:int, prevY:int){
 	if (gameboard[lastX,lastY+1].isWall && gameboard[lastX,lastY-1].isWall){
-	    if (gameboard[lastX,lastY].getWallLine(0,1) !=null){
-	    	if (gameboard[lastX,lastY].getWallLine(0,-1) !=null){
+	    if (gameboard[lastX,lastY].getWallLine(0,1)){
+	    	if (gameboard[lastX,lastY].getWallLine(0,-1)){
 	    		//Debug.Log("checkWallConditionCase2");
 				return x == prevX;
 	    	}
