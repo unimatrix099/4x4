@@ -87,6 +87,7 @@ var controlButtonDown : Texture2D;
 var controlButtonLeft : Texture2D;
 var controlButtonRight : Texture2D;
 var controlButtonReset : Texture2D;
+var controlBackground : Texture2D;
 
 function Start () {
 //Camera.main.transform.RotateAround(centerOfGame,Vector3.forward,-35);
@@ -732,7 +733,7 @@ function checkFor16LinesInNeighbours(x:int,y:int){
 }
 
 function addEscPoint(x:int,y:int) : GameObject{
-	var escPoint = Instantiate(escPointPrefab, Vector3(x * lineSize, y * lineSize, -lineSize), Quaternion.identity);
+	var escPoint = Instantiate(escPointPrefab, Vector3(x * lineSize, y * lineSize, -lineSize),  Quaternion.AngleAxis(90, Vector3.left));
 	return escPoint;
 }
 	
@@ -924,7 +925,7 @@ function OnGUI () {
 
 
 	// Make a background box
-	GUI.Box (Rect (Screen.width-110,10,100,120), "Menu");
+	GUI.Box (Rect (Screen.width-110,10,100,120), "Menu" );
 
 	GUI.enabled = true;
 
